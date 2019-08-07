@@ -1,22 +1,14 @@
 import Data.List
 
-data Set = Pair (Int, Int) | Triple (Int, Int, Int) deriving (Show)
+subsets 0 _ = [[]]
 
-findTriples :: [Int] -> [Set]
-findTriples (x:y:z:rest)
-  | (x < y && y < z) || (x == y && y == z) = Triple (x,y,z) : findTriples (y:z:rest)
-  | otherwise = findTriples rest
-findTriples [x,y] = []
-findTriples [x] = []
+-- Empty sets don't have any (non-empty) subsets.
+subsets _ [] = []
 
-findPairs :: [Int] -> [Set]
-findPairs (x:y:rest)
-  | x == y = Pair (x,y) : findPairs rest
-  | otherwise = findPairs rest
-findPairs [x] = []
-findPairs [] = []
-
-findSets :: [Int] -> [Set]
-findSets x = pairs ++ triples
-  where pairs = findPairs x
-        triples = findTriples x
+-- Otherwise we're dealing with non-empty subsets of a non-empty set.
+-- If the first element of the set is x, we can get subsets of size n by either:
+--   - getting subsets of size n-1 of the remaining set xs and adding x to each of them
+--     (those are all subsets containing x), or
+--   - getting subsets of size n of the remaining set xs
+--     (those are all subsets not containing x)
+subsets n (x : xs) = map (x :) (subsets (n - 1) xs) ++ subsets n xs

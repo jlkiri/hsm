@@ -65,87 +65,92 @@ unsorted2 = [
   , HT White
   , ST Three Sou]
 
-data Set = Pair (Tile, Tile) | Seq (Tile, Tile, Tile) | Triple (Tile, Tile, Tile) deriving (Show)
+niceHand = [
+  ST One Man,
+  ST One Man,
+  ST Two Man,
+  ST Two Man,
+  ST Three Man,
+  ST Three Man,
+  ST Four Man,
+  ST Five Man,
+  ST Six Man,
+  ST Seven Man,
+  ST Eight Man,
+  HT White,
+  HT White,
+  ST Seven Man]
 
-findTriples :: [Tile] -> [Set]
-findTriples (x:y:z:rest) =
+shortHand = [
+  ST Four Man,
+  ST Five Man,
+  ST Six Man,
+  ST Six Man]
+
+data Set = Pair (Tile, Tile) | Seq (Tile, Tile, Tile) | Triple (Tile, Tile, Tile) deriving (Eq, Show)
+
+preSetify :: [Tile] -> [[Tile]]
+preSetify [] = [[]]
+preSetify tiles = pairs `mappend` triples
+  where pairs = subsets 2 tiles
+        triples = subsets 3 tiles
+
+makeTriples :: [Tile] -> Maybe Set
+makeTriples [x,y,z] =
   case (x,y,z) of
     (ST _ _, ST _ _, ST _ _) -> handleTriple x y z
     (HT hon1, HT hon2, HT hon3) -> if hon1 == hon2 && hon2 == hon3
-                                  then Triple (x, y, z) : findTriples (y:z:rest)
-                                  else findTriples (y:z:rest)
-    _ -> findTriples (y:z:rest)
+                                  then Just (Triple (x, y, z))
+                                  else Nothing
+    _ -> Nothing
   where
     handleTriple (ST val1 k1)  (ST val2 k2)  (ST val3 k3)
-      | k1 /= k2 || k2 /= k3 = findTriples (y:z:rest)
-      | val1 < val2 && val2 < val3 = Seq (x, y, z) : findTriples (y:z:rest)
-      | val1 == val2 && val2 == val3 = Triple (x, y, z) : findTriples (y:z:rest)
-      | otherwise = findTriples (y:z:rest)
-findTriples [x,y] = []
-findTriples [x] = []
+      | k1 /= k2 || k2 /= k3 = Nothing
+      | (fromEnum val3 - fromEnum val2) == 1 && (fromEnum val2 - fromEnum val1) == 1 = Just (Seq (x, y, z))
+      | val1 == val2 && val2 == val3 = Just (Triple (x, y, z))
+      | otherwise = Nothing
 
-findPairs :: [Tile] -> [Set]
-findPairs (x:y:rest) = 
+makePairs :: [Tile] -> Maybe Set
+makePairs [x, y] =
   case (x,y) of
     (ST _ _, ST _ _) -> handlePair x y
     (HT hon1, HT hon2) -> if hon1 == hon2
-                      then Pair (x, y) : findPairs rest
-                      else findPairs rest
-    _ -> findPairs rest
+                        then Just (Pair (x, y))
+                        else Nothing
+    _ -> Nothing
   where
     handlePair (ST val1 k1) (ST val2 k2)
-      | k1 /= k2 = findPairs (y:rest)
-      | val1 == val2 = Pair (x, y) : findPairs rest
-      | otherwise = findPairs rest
-findPairs [x] = []
-findPairs [] = []
+      | k1 /= k2 = Nothing
+      | val1 == val2 = Just (Pair (x, y))
+      | otherwise = Nothing
 
-findSets :: [Tile] -> [Set]
-findSets x = pairs ++ triples
-  where pairs = findPairs x
-        triples = findTriples x
+setify :: [[Tile]] -> [Maybe Set]
+setify xs = pairSets `mappend` tripleSets
+  where pairSets = makePairs <$> filter ((==2) . length) xs
+        tripleSets = makeTriples <$> filter ((==3) . length) xs
 
+subsets :: Int -> [a] -> [[a]]
+subsets 0 _ = [[]]
+subsets _ [] = []
+subsets n (x : xs) = map (x :) (subsets (n - 1) xs) ++ subsets n xs
 
+isWinningHand :: [Tile] -> Bool
+isWinningHand = undefined
 
-sets1 = findSets $ sort unsorted1
-sets2 = findSets $ sort unsorted2
+isSeq :: Set -> Bool
+isSeq (Seq (_, _, _)) = True
+isSeq _ = False
 
+isTriple :: Set -> Bool
+isTriple (Triple (_, _, _)) = True
+isTriple _ = False
 
+isPair :: Set -> Bool
+isPair (Pair (_, _)) = True
+isPair _ = False
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-type Pair = (Tile, Tile)
-type Triple = (Tile, Tile, Tile)
-
-showVal :: Tile -> String
-showVal (ST x _) = show x
-
-isPair :: Pair -> Bool
-isPair (tile1, tile2) = tile1 == tile2
-
-isTriple :: Triple -> Bool
-isTriple (tile1, tile2, tile3) = tile1 == tile2 && tile2 == tile3
-
-isConsec :: Triple -> Bool
-isConsec (ST v1  _, ST v2 _, ST v3 _) =
-  v1 `compare` v2 == LT && v2 `compare` v3 == LT
-
--- spUnsorted = [HT South, HT West, HT West]
--- spSorted = sortBy (\(HT x ) (HT y ) -> x `compare` y) spUnsorted
-
--- test = isConsec (OrdTriple (ST One Man, ST Two Man, ST Three Man))
+validCombs :: [[Set]] -> [[Set]]
+validCombs = filter valid
+  where seqsOrTriples = length . filter (\x -> isSeq x || isTriple x)
+        pairs = length . filter isPair
+        valid x = pairs x == 1 && seqsOrTriples x == 3
