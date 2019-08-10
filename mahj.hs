@@ -33,7 +33,58 @@ instance Ord Tile where
   compare (HT _) (ST _ _) = GT
   compare (ST _ _) (HT _) = LT
 
-unsorted1 = [
+isSameKind :: Tile -> Tile -> Bool
+isSameKind (ST _ k1) (ST _ k2) = k1 == k2
+isSameKind (HT h1) (HT h2) = h1 == h2
+isSameKind _ _ = False
+
+-- memo: span p xs is equivalent to (takeWhile p xs, dropWhile p xs)
+groupByKind :: [Tile] -> [[Tile]]
+groupByKind [] = []
+groupByKind xs@(x:_) = same : (groupByKind diff)
+  where (same, diff) = span (\a -> x `isSameKind` a) xs
+
+data Tree a = Empty | Node (Tree a) a (Tree a) deriving (Eq)
+
+instance (Show a) => Show (Tree a) where
+  show x = customShow x 0
+
+customShow :: (Show a) => Tree a -> Int -> String
+customShow Empty _ = ""
+customShow (Node l v r) depth =
+  replicate depth '\t' ++
+  show v ++
+  "\n" ++
+  customShow l (depth + 1) ++ customShow r (depth + 1)
+
+isSequential :: Tile -> Tile -> Bool
+isSequential (ST val1 _) (ST val2 _) = fromEnum val2 - fromEnum val1 == 1
+isSequential _ (HT _) = False
+
+buildTree :: [Tile] -> Tree Tile
+buildTree [] = Empty
+buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
+  where seq = dropWhile (not . isSequential x) xs
+        equals = filter (==x) xs
+
+isWinning :: [Tile] -> Bool
+isWinning xs = all (>1) $ numOfNodes <$> buildTrees xs
+
+seqDepth :: Tree Tile -> Int
+seqDepth Empty = 0
+seqDepth (Node l _ r) = 1 + seqDepth l
+
+numOfNodes :: Tree Tile -> Int
+numOfNodes Empty = 0
+numOfNodes (Node l v r) = 1 + numOfNodes l + numOfNodes r
+
+buildTrees :: [Tile] -> [Tree Tile]
+buildTrees [] = []
+buildTrees xs = tree : (buildTrees $ drop n xs)
+  where tree = buildTree xs
+        n = numOfNodes tree
+
+notWinningHand = [
     ST Two Man
   , HT East
   , HT White
@@ -49,23 +100,7 @@ unsorted1 = [
   , HT White
   , ST Three Sou]
 
-unsorted2 = [
-    ST Two Man
-  , HT East
-  , HT White
-  , ST Two Man
-  , ST Four Sou
-  , ST Three Pin
-  , ST One Man
-  , ST Two Sou
-  , ST Two Man
-  , ST Three Man
-  , HT South
-  , ST Four Man
-  , HT White
-  , ST Three Sou]
-
-niceHand = [
+winningHand = [
   ST One Man,
   ST One Man,
   ST Two Man,
@@ -81,76 +116,6 @@ niceHand = [
   HT White,
   ST Seven Man]
 
-shortHand = [
-  ST Four Man,
-  ST Five Man,
-  ST Six Man,
-  ST Six Man]
-
 data Set = Pair (Tile, Tile) | Seq (Tile, Tile, Tile) | Triple (Tile, Tile, Tile) deriving (Eq, Show)
 
-preSetify :: [Tile] -> [[Tile]]
-preSetify [] = [[]]
-preSetify tiles = pairs `mappend` triples
-  where pairs = subsets 2 tiles
-        triples = subsets 3 tiles
 
-makeTriples :: [Tile] -> Maybe Set
-makeTriples [x,y,z] =
-  case (x,y,z) of
-    (ST _ _, ST _ _, ST _ _) -> handleTriple x y z
-    (HT hon1, HT hon2, HT hon3) -> if hon1 == hon2 && hon2 == hon3
-                                  then Just (Triple (x, y, z))
-                                  else Nothing
-    _ -> Nothing
-  where
-    handleTriple (ST val1 k1)  (ST val2 k2)  (ST val3 k3)
-      | k1 /= k2 || k2 /= k3 = Nothing
-      | (fromEnum val3 - fromEnum val2) == 1 && (fromEnum val2 - fromEnum val1) == 1 = Just (Seq (x, y, z))
-      | val1 == val2 && val2 == val3 = Just (Triple (x, y, z))
-      | otherwise = Nothing
-
-makePairs :: [Tile] -> Maybe Set
-makePairs [x, y] =
-  case (x,y) of
-    (ST _ _, ST _ _) -> handlePair x y
-    (HT hon1, HT hon2) -> if hon1 == hon2
-                        then Just (Pair (x, y))
-                        else Nothing
-    _ -> Nothing
-  where
-    handlePair (ST val1 k1) (ST val2 k2)
-      | k1 /= k2 = Nothing
-      | val1 == val2 = Just (Pair (x, y))
-      | otherwise = Nothing
-
-setify :: [[Tile]] -> [Maybe Set]
-setify xs = pairSets `mappend` tripleSets
-  where pairSets = makePairs <$> filter ((==2) . length) xs
-        tripleSets = makeTriples <$> filter ((==3) . length) xs
-
-subsets :: Int -> [a] -> [[a]]
-subsets 0 _ = [[]]
-subsets _ [] = []
-subsets n (x : xs) = map (x :) (subsets (n - 1) xs) ++ subsets n xs
-
-isWinningHand :: [Tile] -> Bool
-isWinningHand = undefined
-
-isSeq :: Set -> Bool
-isSeq (Seq (_, _, _)) = True
-isSeq _ = False
-
-isTriple :: Set -> Bool
-isTriple (Triple (_, _, _)) = True
-isTriple _ = False
-
-isPair :: Set -> Bool
-isPair (Pair (_, _)) = True
-isPair _ = False
-
-validCombs :: [[Set]] -> [[Set]]
-validCombs = filter valid
-  where seqsOrTriples = length . filter (\x -> isSeq x || isTriple x)
-        pairs = length . filter isPair
-        valid x = pairs x == 1 && seqsOrTriples x == 3

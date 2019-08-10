@@ -19,6 +19,9 @@ buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
   where seq = dropWhile (\y -> y - x /= 1) xs
         equals = filter (==x) xs
 
+isWinning :: (Num a, Ord a, Eq a) => [a] -> Bool
+isWinning xs = all (>1) $ numOfNodes <$> buildTrees xs
+
 seqDepth :: Tree a -> Int
 seqDepth Empty = 0
 seqDepth (Node l _ r) = 1 + seqDepth l
