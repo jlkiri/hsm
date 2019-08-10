@@ -70,9 +70,44 @@ buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
 isWinning :: [Tile] -> Bool
 isWinning xs = all (>1) $ numOfNodes <$> buildTrees xs
 
-seqDepth :: Tree Tile -> Int
-seqDepth Empty = 0
-seqDepth (Node l _ r) = 1 + seqDepth l
+
+-- if Nseq `mod` 3 == 0 and Nseq == 3, either Npair == 0 (123) or Nseq == Npair (112233) or exists triple
+-- if Nseq `mod` 3 /= 0 and Nseq > 3, validate Node l
+-- if Nseq `mod` 3 /= 0 and Nseq < 3, not valid
+
+-- TODO: fix not working isValid
+
+isValid :: Tree Tile -> Bool
+isValid Empty = False
+isValid tree@(Node l _ r)
+  | countSeqs tree `mod` 3 == 0 && countSeqs tree == 3 = countSames tree == 0 || countSeqs tree == countSames tree || hasTriples tree
+  | countSeqs tree `mod` 3 /= 0 && countSeqs tree > 3 = isValid l
+  | countSeqs tree `mod` 3 /= 0 && countSeqs tree < 3 = False
+  | otherwise = False
+
+hasTriples :: Tree Tile -> Bool
+hasTriples Empty = False
+hasTriples (Node l _ r)
+  | countSames r == 1 = True
+  | countSames r /= 1 = hasTriples l
+
+countSeqs :: Tree Tile -> Int
+countSeqs Empty = 0
+countSeqs (Node l _ r) = 1 + countSeqs l
+
+countSamesShallow :: Tree Tile -> Int
+countSamesShallow Empty = 0
+countSamesShallow (Node l _ r) = 
+  case r of
+    Empty -> countSamesShallow l
+    _ -> 1 + countSamesShallow l
+
+countSames :: Tree Tile -> Int
+countSames Empty = 0
+countSames (Node l _ r) = 
+  case r of
+    Empty -> countSames l
+    _ -> 1 + countSames l + countSames r
 
 numOfNodes :: Tree Tile -> Int
 numOfNodes Empty = 0
@@ -98,7 +133,7 @@ notWinningHand = [
   , HT South
   , ST Four Man
   , HT White
-  , ST Three Sou]
+  , HT White]
 
 winningHand = [
   ST One Man,
@@ -112,9 +147,9 @@ winningHand = [
   ST Six Man,
   ST Seven Man,
   ST Eight Man,
+  ST Nine Man,
   HT White,
-  HT White,
-  ST Seven Man]
+  HT White]
 
 data Set = Pair (Tile, Tile) | Seq (Tile, Tile, Tile) | Triple (Tile, Tile, Tile) deriving (Eq, Show)
 
