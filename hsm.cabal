@@ -56,6 +56,8 @@ test-suite hsm-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CheckSpec
+      Core.TreeSpec
       Paths_hsm
   hs-source-dirs:
       test

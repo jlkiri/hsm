@@ -16,7 +16,7 @@ customShow (Node l v r) depth =
   customShow l (depth + 1) ++ customShow r (depth + 1)
 
 isSequential :: Tile -> Tile -> Bool
-isSequential (ST val1 _) (ST val2 _) = fromEnum val2 - fromEnum val1 == 1
+isSequential (ST val1 k1) (ST val2 k2) = k2 == k1 && (fromEnum val2 - fromEnum val1 == 1)
 isSequential _ (HT _) = False
 
 buildTree :: [Tile] -> Tree Tile
@@ -31,7 +31,7 @@ buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
 
 isValid :: Tree Tile -> Bool
 isValid Empty = False
-isValid tree = (countPureSeqs tree 0 root) `mod` 3 == 0 || isPair tree || isTriple tree
+isValid tree = isPair tree || isTriple tree || (countPureSeqs tree 0 root) `mod` 3 == 0
   where root = getRootValue tree - 1
 
 countSeqs :: Tree Tile -> Int

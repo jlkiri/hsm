@@ -1,4 +1,7 @@
-module HandCheck.Core.Groups where
+module HandCheck.Core.Groups
+  (
+    groupByKind
+  ) where
 
 import Data.List
 import HandCheck.Core.Hands
