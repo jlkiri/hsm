@@ -57,7 +57,11 @@ spec = describe "Trees" $ do
 
         it "Detects tenpai as non-winning" $
           all (==True) (isValid <$> tenHand) `shouldBe` False
+        
+        it "Detects the hard one winning" $
+          all (==True) (isValid <$> hardOne) `shouldBe` True
 
             where sevenHand = buildTrees $ sort sevenPairHand
                   tripleHand = buildTrees $ sort allTripleHand
                   tenHand = buildTrees $ sort tenpaiHand
+                  hardOne = buildTrees $ sort myTestHand

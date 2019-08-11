@@ -54,6 +54,7 @@ myTestHand = [
   ST One Man,
   ST One Man,
   ST One Man,
+  ST One Man,
   ST Two Man,
   ST Three Man,
   ST Four Man,

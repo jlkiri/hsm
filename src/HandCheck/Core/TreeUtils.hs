@@ -27,6 +27,7 @@ isSequential :: Tile -> Tile -> Bool
 isSequential (ST val1 k1) (ST val2 k2) = k2 == k1 && (fromEnum val2 - fromEnum val1 == 1)
 isSequential _ (HT _) = False
 
+-- TODO: change isSequential to just == x + samekind (maybe filter (/=x) + samekind) (e.g. allow 1-3-5 trees)
 buildTree :: [Tile] -> Tree Tile
 buildTree [] = Empty
 buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
@@ -53,12 +54,28 @@ getRootValue (Node _ v _) =
     (HT _) -> 0
     (ST val _) -> fromEnum val + 1
 
+
+-- false positive on 1-1-3 tree
 isPair :: Tree Tile -> Bool
 isPair Empty = False
 isPair (Node l _ r) =
   case r of
     Empty -> False
+    _ -> not . isPair $ r
+
+-- false positive on 1-1-3 tree
+isPairStrict :: Tree Tile -> Bool
+isPairStrict Empty = False
+isPairStrict (Node l _ r) =
+  case r of
+    Empty -> False
     _ -> isEmpty l
+
+hasPair :: Tree Tile -> Bool
+hasPair Empty = False
+hasPair node@(Node l _ _)
+  | isPair node = True
+  | otherwise = hasPair l
 
 isEmpty :: Tree Tile -> Bool
 isEmpty Empty = True
@@ -72,6 +89,12 @@ isTriple (Node l _ r) =
 
 getValue :: Tile -> Int
 getValue (ST val _) = fromEnum val + 1
+
+getAllChis :: Tree Tile -> [Tile]
+getAllChis Empty = []
+getAllChis node@(Node l v _)
+  | isTriple node || isPair node = getAllChis l
+  | otherwise = v : getAllChis l
 
 -- 1-3-5 -> 1, 1-2-3 -> 3, 1-1-2-3 -> 2, 1-2-2-3 -> 2, 1-2-3-4-5-6 -> 6
 -- A valid tree will always have N(pureseq) `mod` 3 == 0
