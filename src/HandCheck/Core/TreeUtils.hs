@@ -1,6 +1,6 @@
-module Trees where
+module HandCheck.Core.TreeUtils where
 
-import Types
+import HandCheck.Core.Types
 
 data Tree a = Empty | Node (Tree a) a (Tree a) deriving (Eq)
 
@@ -24,9 +24,6 @@ buildTree [] = Empty
 buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
   where seq = dropWhile (not . isSequential x) xs
         equals = filter (==x) xs
-
-isWinning :: [Tile] -> Bool
-isWinning xs = foldl (&&) True (isValid <$> buildTrees xs)
 
 -- A hand is valid only if every tree is valid. Invalid trees have unfinished sets, which means
 -- that given the fixed number of tiles in a hand, some other tree either has excess tiles or not enough

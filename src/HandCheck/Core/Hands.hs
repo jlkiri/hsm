@@ -1,6 +1,6 @@
-module Hands where
+module HandCheck.Core.Hands where
   
-import Types
+import HandCheck.Core.Types
 
 incompleteHand = [
     ST Two Man

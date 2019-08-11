@@ -1,4 +1,4 @@
-module Types where
+module HandCheck.Core.Types where
 
 data Honor = West | South | East | North | Red | Green | White deriving (Eq, Ord, Show)
 
