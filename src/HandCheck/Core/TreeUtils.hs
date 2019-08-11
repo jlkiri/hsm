@@ -1,4 +1,12 @@
-module HandCheck.Core.TreeUtils where
+module HandCheck.Core.TreeUtils
+  ( buildTree
+  , buildTrees
+  , countPureSeqs
+  , isValid
+  , isPair
+  , isTriple
+  , Tree(..)
+  ) where
 
 import HandCheck.Core.Types
 
