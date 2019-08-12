@@ -9,6 +9,7 @@ module HandCheck.Core.TreeUtils
   , Tree(..)
   ) where
 
+import Data.List
 import HandCheck.Core.Types
 import HandCheck.Core.Groups
 import HandCheck.Core.Hands
@@ -87,6 +88,19 @@ isAllPairsOrTriples node@(Node l _ r)
   | isPairStrict node = True
   | isPair node || isTriple node = isAllPairsOrTriples l
   | otherwise = False
+
+validate :: [Tile] -> [Tree Tile]
+validate [] = []
+validate hand
+  | valid = builtHand
+  | otherwise = []
+  where builtHand = buildTree <$> groupByKind (sort hand)
+        valid = all (==True) $ isValid <$> builtHand
+
+isPinfu :: [Tree Tile] -> Bool
+isPinfu [] = False
+isPinfu trees = chiSum == 12
+  where chiSum = sum $ length <$> getChi <$> trees
 
 isPairStrict :: Tree Tile -> Bool
 isPairStrict Empty = False
