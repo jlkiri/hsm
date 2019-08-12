@@ -50,8 +50,7 @@ sevenPairHand = [
   HT West,
   HT West]
 
-myTestHand = [
-  ST One Man,
+hand13 = [
   ST One Man,
   ST One Man,
   ST One Man,
@@ -64,7 +63,8 @@ myTestHand = [
   ST Eight Man,
   ST Nine Man,
   ST Nine Man,
-  ST Nine Man]
+  ST Nine Man,
+  HT West]
 
 tenpaiHand = [
   ST One Man,

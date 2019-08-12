@@ -9,6 +9,8 @@ module HandCheck.Core.TreeUtils
   ) where
 
 import HandCheck.Core.Types
+import HandCheck.Core.Groups
+import HandCheck.Core.Hands
 
 data Tree a = Empty | Node (Tree a) a (Tree a) deriving (Eq)
 
@@ -27,12 +29,11 @@ isSequential :: Tile -> Tile -> Bool
 isSequential (ST val1 k1) (ST val2 k2) = k2 == k1 && (fromEnum val2 - fromEnum val1 == 1)
 isSequential _ (HT _) = False
 
--- TODO: change isSequential to just == x + samekind (maybe filter (/=x) + samekind) (e.g. allow 1-3-5 trees)
+-- span p xs is equivalent to (takeWhile p xs, dropWhile p xs)
 buildTree :: [Tile] -> Tree Tile
 buildTree [] = Empty
 buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
-  where seq = dropWhile (not . isSequential x) xs
-        equals = filter (==x) xs
+  where (equals, seq) = span (==x) xs
 
 -- A hand is valid only if every tree is valid. Invalid trees have unfinished sets, which means
 -- that given the fixed number of tiles in a hand, some other tree either has excess tiles or not enough
@@ -40,8 +41,17 @@ buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
 
 isValid :: Tree Tile -> Bool
 isValid Empty = False
-isValid tree = isPair tree || isTriple tree || (countPureSeqs tree 0 root) `mod` 3 == 0
-  where root = getRootValue tree - 1
+isValid tree
+  | isSingleTile tree = False
+  | isAllPairs tree = True
+  | isTriple tree = True
+  | hasSeqs && hasFinishedSeqs = True
+  | otherwise = False
+  where isSingleTile = (==1) . numOfNodes
+        root = getRootValue tree - 1
+        seqs = countPureSeqs tree 0 root
+        hasSeqs = seqs /= 0
+        hasFinishedSeqs = seqs `mod` 3 == 0
 
 countSeqs :: Tree Tile -> Int
 countSeqs Empty = 0
@@ -54,8 +64,7 @@ getRootValue (Node _ v _) =
     (HT _) -> 0
     (ST val _) -> fromEnum val + 1
 
-
--- false positive on 1-1-3 tree
+-- False positive on 1-1-3 tree (do not use to detect strict pairs)
 isPair :: Tree Tile -> Bool
 isPair Empty = False
 isPair (Node l _ r) =
@@ -63,13 +72,19 @@ isPair (Node l _ r) =
     Empty -> False
     _ -> not . isPair $ r
 
--- false positive on 1-1-3 tree
+isAllPairs :: Tree Tile -> Bool
+isAllPairs Empty = False
+isAllPairs node@(Node l _ r)
+  | isPairStrict node = True
+  | isPair node = isAllPairs l
+  | otherwise = False
+
 isPairStrict :: Tree Tile -> Bool
 isPairStrict Empty = False
-isPairStrict (Node l _ r) =
+isPairStrict node@(Node l _ r) =
   case r of
     Empty -> False
-    _ -> isEmpty l
+    _ -> isPair node && isEmpty l
 
 hasPair :: Tree Tile -> Bool
 hasPair Empty = False
@@ -89,10 +104,13 @@ isTriple (Node l _ r) =
 
 getValue :: Tile -> Int
 getValue (ST val _) = fromEnum val + 1
+getValue _ = 0
 
+-- Works correctly only on valid trees
 getAllChis :: Tree Tile -> [Tile]
 getAllChis Empty = []
 getAllChis node@(Node l v _)
+  | isAllPairs node = v : v : getAllChis l
   | isTriple node || isPair node = getAllChis l
   | otherwise = v : getAllChis l
 

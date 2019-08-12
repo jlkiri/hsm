@@ -4,6 +4,7 @@ module Core.TreeSpec
 
 import Test.Hspec
 import Data.List
+import HandCheck.Core.Groups
 import HandCheck.Core.TreeUtils
 import HandCheck.Core.Types
 import HandCheck.Core.Hands
@@ -47,21 +48,16 @@ spec = describe "Trees" $ do
           (countPureSeqs testForSeqs 0 0) `shouldBe` 3
 
         it "Correctly builds trees for whole hand" $
-          (length $ buildTrees completeHand) `shouldBe` 4
+          (length $ buildTree <$> groupByKind completeHand) `shouldBe` 4
 
         it "Detects 7 pairs as winning" $
-          all (==True) (isValid <$> sevenHand) `shouldBe` True
+          all (==True) (isValid <$> buildTree <$> groupByKind (sort sevenPairHand)) `shouldBe` True
 
         it "Detects all triple hand as winning" $
-          all (==True) (isValid <$> tripleHand) `shouldBe` True
+          all (==True) (isValid <$> buildTree <$> groupByKind (sort allTripleHand)) `shouldBe` True
 
         it "Detects tenpai as non-winning" $
-          all (==True) (isValid <$> tenHand) `shouldBe` False
+          all (==True) (isValid <$> buildTree <$> groupByKind (sort tenpaiHand)) `shouldBe` False
         
-        it "Detects the hard one winning" $
-          all (==True) (isValid <$> hardOne) `shouldBe` True
-
-            where sevenHand = buildTrees $ sort sevenPairHand
-                  tripleHand = buildTrees $ sort allTripleHand
-                  tenHand = buildTrees $ sort tenpaiHand
-                  hardOne = buildTrees $ sort myTestHand
+        it "Detects the hard one as non-winning" $
+          all (==True) (isValid <$> buildTree <$> groupByKind (sort hand13)) `shouldBe` False
