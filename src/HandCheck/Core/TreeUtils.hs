@@ -4,6 +4,7 @@ module HandCheck.Core.TreeUtils
   , countPureSeqs
   , isValid
   , isPair
+  , isTripleStrict
   , isTriple
   , Tree(..)
   ) where
@@ -39,12 +40,13 @@ buildTree (x:xs) = Node (buildTree seq) x (buildTree equals)
 -- that given the fixed number of tiles in a hand, some other tree either has excess tiles or not enough
 -- Ex: 1m2m + 3s4s5s6s
 
+-- False negative on: [ST One Man, ST One Man, ST One Man, ST Two Man, ST Two Man, ST Two Man, ST Three Man, ST Three Man]
 isValid :: Tree Tile -> Bool
 isValid Empty = False
 isValid tree
   | isSingleTile tree = False
-  | isAllPairs tree = True
-  | isTriple tree = True
+  | isAllPairsOrTriples tree = True
+  | isTripleStrict tree = True
   | hasSeqs && hasFinishedSeqs = True
   | otherwise = False
   where isSingleTile = (==1) . numOfNodes
@@ -79,6 +81,13 @@ isAllPairs node@(Node l _ r)
   | isPair node = isAllPairs l
   | otherwise = False
 
+isAllPairsOrTriples :: Tree Tile -> Bool
+isAllPairsOrTriples Empty = False
+isAllPairsOrTriples node@(Node l _ r)
+  | isPairStrict node = True
+  | isPair node || isTriple node = isAllPairsOrTriples l
+  | otherwise = False
+
 isPairStrict :: Tree Tile -> Bool
 isPairStrict Empty = False
 isPairStrict node@(Node l _ r) =
@@ -96,22 +105,41 @@ isEmpty :: Tree Tile -> Bool
 isEmpty Empty = True
 isEmpty _ = False
 
-isTriple :: Tree Tile -> Bool
-isTriple (Node l _ r) =
+isTripleStrict :: Tree Tile -> Bool
+isTripleStrict (Node l _ r) =
   case r of
     Empty -> False
     _ -> isPair r && isEmpty l
 
+isTriple :: Tree Tile -> Bool
+isTriple (Node l _ r) =
+  case r of
+    Empty -> False
+    _ -> isPair r
+
 getValue :: Tile -> Int
 getValue (ST val _) = fromEnum val + 1
 getValue _ = 0
+
+isHonor :: Tile -> Bool
+isHonor (HT _) = True
+isHonor _ = False
+
+getChi :: Tree Tile -> [Tile]
+getChi Empty = []
+getChi node@(Node _ v _) 
+  | isHonor v = []
+  | sequential && symmetric = getAllChis node
+  | otherwise = []
+  where sequential = countSeqs node `mod` 3 == 0
+        symmetric = numOfNodes node `mod` 3 == 0
 
 -- Works correctly only on valid trees
 getAllChis :: Tree Tile -> [Tile]
 getAllChis Empty = []
 getAllChis node@(Node l v _)
   | isAllPairs node = v : v : getAllChis l
-  | isTriple node || isPair node = getAllChis l
+  | isPair node = getAllChis l
   | otherwise = v : getAllChis l
 
 -- 1-3-5 -> 1, 1-2-3 -> 3, 1-1-2-3 -> 2, 1-2-2-3 -> 2, 1-2-3-4-5-6 -> 6
