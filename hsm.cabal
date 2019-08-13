@@ -50,6 +50,8 @@ executable hsm-exe
   build-depends:
       base >=4.7 && <5
     , hsm
+    , scotty
+    , wai-middleware-static
   default-language: Haskell2010
 
 test-suite hsm-test
