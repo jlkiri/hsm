@@ -10,9 +10,7 @@ import HandCheck.Core.TreeUtils
 import HandCheck.Core.Types
 
 isWinning :: Bool
-isWinning = all (==True) (isValid <$> hand)
-  where hand = buildTree <$> groupByKind (sort completeHand)
+isWinning = and $ isValid <$> buildTrees completeHand
 
 isNotWinning :: Bool
-isNotWinning = all (==True) (isValid <$> hand)
-  where hand = buildTree <$> groupByKind (sort incompleteHand)
+isNotWinning = and $ isValid <$> buildTrees incompleteHand

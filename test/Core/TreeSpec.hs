@@ -45,19 +45,19 @@ spec = describe "Trees" $ do
           isTriple testTriple `shouldBe` True
 
         it "Correctly counts sequences" $
-          (countPureSeqs testForSeqs 0 0) `shouldBe` 3
+          (countPureSeqs testForSeqs) `shouldBe` 3
 
         it "Correctly builds trees for whole hand" $
-          (length $ buildTree <$> groupByKind completeHand) `shouldBe` 4
+          (length $ buildTrees completeHand) `shouldBe` 4
 
         it "Detects 7 pairs as winning" $
-          all (==True) (isValid <$> buildTree <$> groupByKind (sort sevenPairHand)) `shouldBe` True
+          (and $ isValid <$> buildTrees sevenPairHand) `shouldBe` True
 
         it "Detects all triple hand as winning" $
-          all (==True) (isValid <$> buildTree <$> groupByKind (sort allTripleHand)) `shouldBe` True
+          (and $ isValid <$> buildTrees allTripleHand) `shouldBe` True
 
         it "Detects tenpai as non-winning" $
-          all (==True) (isValid <$> buildTree <$> groupByKind (sort tenpaiHand)) `shouldBe` False
+          (and $ isValid <$> buildTrees tenpaiHand) `shouldBe` False
         
         it "Detects the hard one as non-winning" $
-          all (==True) (isValid <$> buildTree <$> groupByKind (sort hand13)) `shouldBe` False
+          (and $ isValid <$> buildTrees hand13) `shouldBe` False
