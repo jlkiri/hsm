@@ -4,7 +4,13 @@ module HandCheck.Core.TreeUtils
   , countPureSeqs
   , isValid
   , isPair
+  , isPairStrict
   , checkStrictTriple
+  , checkSingle
+  , checkPairsAndTriples
+  , isPinfu
+  , isAllPairs
+  , validate
   , isTriple
   , Tree(..)
   ) where

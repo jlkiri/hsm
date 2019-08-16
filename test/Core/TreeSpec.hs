@@ -27,22 +27,37 @@ testTree =
     (ST One Man)
     (Node Empty (ST One Man) Empty)
 
-testPair = Node Empty (ST One Man) (Node Empty (ST One Man) Empty)
+--11
+testStrictPair = Node Empty (ST One Man) (Node Empty (ST One Man) Empty)
 
-testTriple = Node Empty (ST One Man) (Node Empty (ST One Man) (Node Empty (ST One Man) Empty))
+--111
+testStrictTriple = Node Empty (ST One Man) (Node Empty (ST One Man) (Node Empty (ST One Man) Empty))
 
+-- 112233
+testAllPairs = buildTree [ST One Man, ST One Man, ST Two Man, ST Two Man, ST Three Man, ST Three Man]
+
+-- 1122233
+testNotAllPairs = buildTree [ST One Man, ST One Man, ST Two Man, ST Two Man, ST Two Man, ST Three Man, ST Three Man]
+
+--12223
 testForSeqs = buildTree [ST One Man, ST Two Man, ST Two Man, ST Two Man, ST Three Man]
+
+--1
+testSingle = buildTree [HT West]
 
 spec :: Spec
 spec = describe "Trees" $ do
         it "Correctly builds a tree" $
           buildTree [ST One Man, ST One Man, ST Two Man, ST Two Man, ST Two Man, ST Three Man] `shouldBe` testTree
 
-        it "Correctly detects a pair" $
-          isPair testPair `shouldBe` True
+        it "Correctly detects a single tile tree" $
+          checkSingle testSingle `shouldBe` True
 
-        it "Correctly detects a triple" $
-          isTriple testTriple `shouldBe` True
+        it "Correctly detects a strict pair" $
+          isPairStrict testStrictPair `shouldBe` True
+
+        it "Correctly detects a strict triple" $
+          checkStrictTriple testStrictTriple `shouldBe` True
 
         it "Correctly counts sequences" $
           (countPureSeqs testForSeqs) `shouldBe` 3
@@ -59,5 +74,20 @@ spec = describe "Trees" $ do
         it "Detects tenpai as non-winning" $
           (and $ isValid <$> buildTrees tenpaiHand) `shouldBe` False
         
-        it "Detects the hard one as non-winning" $
+        it "Detects complicated tenpai as non-winning" $
           (and $ isValid <$> buildTrees hand13) `shouldBe` False
+
+        it "Detects all triple hand as winning" $
+          (and $ isValid <$> buildTrees allTripleHand) `shouldBe` True
+
+        it "Detects all pairs" $
+          isAllPairs testAllPairs `shouldBe` True
+        
+        it "Detects not all-pair hand as not all pairs" $
+          isAllPairs testNotAllPairs `shouldBe` False
+        
+        it "Detects pairs and triples hand as pairs and triples" $
+          checkPairsAndTriples testNotAllPairs `shouldBe` True
+
+        it "Detects pinfu" $
+          (isPinfu $ validate pinfuHand) `shouldBe` True

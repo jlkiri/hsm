@@ -97,3 +97,19 @@ allTripleHand = [
   HT Red,
   HT West,
   HT West]
+
+pinfuHand = [
+  ST One Man,
+  ST Two Man,
+  ST Three Man,
+  ST Two Pin,
+  ST Two Pin,
+  ST Three Pin,
+  ST Three Pin,
+  ST Four Pin,
+  ST Four Pin,
+  ST Seven Sou,
+  ST Eight Sou,
+  ST Nine Sou,
+  HT West,
+  HT West]
