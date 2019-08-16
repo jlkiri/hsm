@@ -30,6 +30,7 @@ library
       HandCheck.Check
       HandCheck.Core.Groups
       HandCheck.Core.Hands
+      HandCheck.Core.Hand
       HandCheck.Core.TreeUtils
       HandCheck.Core.Types
   other-modules:
@@ -58,6 +59,7 @@ test-suite hsm-test
   other-modules:
       CheckSpec
       Core.TreeSpec
+      Core.HandSpec
       Paths_hsm
   hs-source-dirs:
       test

@@ -4,11 +4,11 @@ module HandCheck.Core.TreeUtils
   , countPureSeqs
   , isValid
   , isPair
+  , isHonor
   , isPairStrict
   , checkStrictTriple
   , checkSingle
   , checkPairsAndTriples
-  , isPinfu
   , isAllPairs
   , validate
   , isTriple
@@ -79,22 +79,6 @@ getValue :: Tile -> Int
 getValue (ST val _) = fromEnum val + 1
 getValue _ = 0
 
-getChi :: Tree Tile -> [Tile]
-getChi Empty = []
-getChi node@(Node _ v _) 
-  | isHonor v = []
-  | sequential = getAllChis node
-  | otherwise = []
-  where sequential = countPureSeqs node `mod` 3 == 0
-
--- Works correctly only on valid trees
-getAllChis :: Tree Tile -> [Tile]
-getAllChis Empty = []
-getAllChis node@(Node l v _)
-  | isAllPairs node = v : v : getAllChis l
-  | isPair node = getAllChis l
-  | otherwise = v : getAllChis l
-
 -- Tree validation functions
 
 -- A hand is valid only if every tree is valid. Invalid trees have unfinished sets, which means
@@ -152,10 +136,6 @@ isAllPairs node@(Node l _ r)
   | isPairStrict node = True
   | isPair node = isAllPairs l
   | otherwise = False
-
-isPinfu :: [Tree Tile] -> Bool
-isPinfu trees = chiSum == 12
-  where chiSum = sum $ length <$> getChi <$> trees
 
 isPairStrict :: Tree Tile -> Bool
 isPairStrict Empty = False

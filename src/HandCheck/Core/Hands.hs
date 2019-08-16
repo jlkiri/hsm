@@ -113,3 +113,19 @@ pinfuHand = [
   ST Nine Sou,
   HT West,
   HT West]
+
+ambiguousPinfuHand = [
+  ST One Man,
+  ST Two Man,
+  ST Three Man,
+  ST Two Pin,
+  ST Two Pin,
+  ST Three Pin,
+  ST Three Pin,
+  ST Four Pin,
+  ST Four Pin,
+  ST Five Pin,
+  ST Five Pin,
+  ST Seven Sou,
+  ST Eight Sou,
+  ST Nine Sou]

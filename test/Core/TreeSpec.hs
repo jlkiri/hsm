@@ -88,6 +88,3 @@ spec = describe "Trees" $ do
         
         it "Detects pairs and triples hand as pairs and triples" $
           checkPairsAndTriples testNotAllPairs `shouldBe` True
-
-        it "Detects pinfu" $
-          (isPinfu $ validate pinfuHand) `shouldBe` True
