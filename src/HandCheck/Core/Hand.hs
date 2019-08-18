@@ -55,7 +55,7 @@ checkYaku' :: Info -> String
 checkYaku' = do
   pinfu <- isPinfu
   iipeiko <- isIipeiko
-  return $ "Pinfu: " <> pinfu <> " Iipeiko: " <> iipeiko
+  return $ "Pinfu: " <> pinfu <> " Iipeiko:  " <> iipeiko
 
 isIipeiko :: Info -> String
 isIipeiko = (chi . id) >>= \chis -> return $ show $ or $ hasDoubleChi <$> chis
